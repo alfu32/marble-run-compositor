@@ -1,13 +1,12 @@
 import eu.ec.oib.training.alferio.Transformer
-import java.io.File
-import java.lang.reflect.Modifier
-import java.net.URLClassLoader
-import java.util.jar.JarFile
+import java.util.Base64
+
 class Base64DecodeTransformer: Transformer {
-    override fun transform(input: String): String {
+    override fun transform(input: ByteArray) : ByteArray {
         println("Base64DecodeTransformer:")
-        println("input: $input")
-        println("output: $input")
-        return input
+        println("input: ${input.toString(Charsets.UTF_8)}")
+        val output = Base64.getDecoder().decode(input)
+        println("output: ${output.toString(Charsets.UTF_8)}")
+        return output
     }
 }

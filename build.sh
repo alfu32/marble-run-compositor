@@ -2,9 +2,9 @@ echo "cleanup"
 rm -rf transformers/*.jar
 
 echo "rebuilding the process executor"
-./gradlew shadowJar
+./gradlew clean shadowJar
 
-submodules=("transformer-base64encode" "transformer-identity" "transformer-base64decode")
+submodules=("transformer-base64encode" "transformer-identity" "transformer-base64decode" "worker-null")
 
 for submodule in "${submodules[@]}";do
   echo "rebuilding $submodule"

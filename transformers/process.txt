@@ -1,0 +1,5 @@
+transformer-identity-1.0-SNAPSHOT.jar
+transformer-base64encode-1.0-SNAPSHOT.jar
+transformer-base64decode-1.0-SNAPSHOT.jar
+transformer-base64encode-1.0-SNAPSHOT.jar
+transformer-identity-1.0-SNAPSHOT.jar
