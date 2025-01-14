@@ -72,7 +72,7 @@ fun addWorkerInstance(composite:CompositeWorker,jarPath:String,workerName:String
         val wki = if (key == ":") {
             composite
         } else {
-            getWorkers(jarPath)[workerName]!!
+            getWorkers(jarPath)[key]!!
         }
         composite.workers[key] = wki
         composite.workerPorts[wki] = mutableMapOf(
