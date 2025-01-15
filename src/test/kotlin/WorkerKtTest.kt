@@ -38,7 +38,7 @@ class WorkerKtTest {
     }
     @Test
     fun testGetFirstWorkerInstance() {
-        val wks = getWorkers("src/test/resources/basic-workers.jar")
+        val wks = getWorkers("src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar")
         val prn = WkPrn()
         for (wk in wks) {
             val ports = mutableMapOf(
@@ -70,13 +70,13 @@ class WorkerKtTest {
 
     @Test
     fun testAddWorkerInstance() {
-        val wks = getWorkers("src/test/resources/basic-workers.jar")
+        val wks = getWorkers("src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar")
         println(wks)
         val composite = CompositeWorker()
         println(composite.workers)
-        addWorkerInstance(composite,"src/test/resources/basic-workers.jar","a.b.c.de.test.WorkerCounter")
+        addWorkerInstance(composite,"src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar","a.b.c.de.test.WorkerCounter")
         println(composite.workers)
-        addWorkerInstance(composite,"src/test/resources/basic-workers.jar","a.b.c.de.test.WorkerClearSink")
+        addWorkerInstance(composite,"src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar","a.b.c.de.test.WorkerClearSink")
         println(composite.workers)
     }
 }

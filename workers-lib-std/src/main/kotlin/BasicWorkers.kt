@@ -3,6 +3,37 @@ package a.b.c.de.test
 import eu.ec.oib.training.alferio.Worker
 import java.time.LocalDateTime
 
+
+class WorkerMultiply(): Worker() {
+    init {
+        this.declaredPorts = "in,out,out2,out3,err".split(',').toMutableList()
+    }
+    override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        // println does nothing
+        println("WorkerMultiply duplicates each packet to out,out2 and out3")
+        val all = mutableListOf<ByteArray>()
+        for(pack in ports["in"]!!){
+            ports["out"]!!.add(pack)
+            ports["out2"]!!.add(pack)
+            ports["out3"]!!.add(pack)
+        }
+    }
+}
+
+class WorkerPipethrough(): Worker() {
+    init {
+        this.declaredPorts = "in,out,err".split(',').toMutableList()
+    }
+    override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        // println does nothing
+        println("WorkerPipethrough pipes in to out through")
+        val all = mutableListOf<ByteArray>()
+        for(pack in ports["in"]!!){
+            ports["out"]!!.add(pack)
+        }
+    }
+}
+
 class WorkerPrintPorts(): Worker() {
     init {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
@@ -67,7 +98,8 @@ class WorkerCounter(): Worker() {
     private var counter:Long = 0L
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         // println does nothing
+        counter+=1
         println("WorkerCounter counts every time it is invoked")
-        ports["out"]!!.add((++counter).toString().toByteArray())
+        ports["out"]!!.add((counter).toString().toByteArray())
     }
 }

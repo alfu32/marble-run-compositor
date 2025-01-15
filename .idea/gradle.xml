@@ -13,7 +13,7 @@
             <option value="$PROJECT_DIR$/transformer-base64encode" />
             <option value="$PROJECT_DIR$/transformer-identity" />
             <option value="$PROJECT_DIR$/transformer-interface" />
-            <option value="$PROJECT_DIR$/worker-null" />
+            <option value="$PROJECT_DIR$/workers-lib-std" />
           </set>
         </option>
       </GradleProjectSettings>

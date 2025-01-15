@@ -12,6 +12,16 @@ abstract class Worker(
     lateinit var jarPath: String
     open var declaredPorts: MutableList<String> = mutableListOf()
     abstract fun run(ports: MutableMap<String,MutableList<ByteArray>>)
+    override fun toString(): String {
+        return """
+            {
+                _type : ${this.javaClass.name},
+                _file : ${this.javaClass.protectionDomain.codeSource.location.file},
+                jarPath : $jarPath,
+                declaredPorts : $declaredPorts,
+            }
+        """.trimIndent()
+    }
 }
 
 //getFirstWorkerInstance
@@ -80,7 +90,11 @@ fun addWorkerInstance(composite:CompositeWorker,jarPath:String,workerName:String
         )
         wki
     } else {
-        composite.workers[jarPath]!!
+        try {
+            composite.workers[key]!!
+        }catch (th:Throwable){
+            throw Throwable("worker $workerName in $jarPath identified by $key not found")
+        }
     }
 }
 
@@ -92,18 +106,21 @@ class Link(
     var destinationWorker:String,
     var destinationPort:String,
 ) {
+    fun getSourceKey() = "$sourceJar:$sourceWorker"
+    fun getDestinationKey() = "$destinationJar:$destinationWorker"
     companion object {
         fun fromString(definition:String):Link{
-            val sourceDestination = definition.split(Regex.fromLiteral("""\s*->\s*""")).map { it.trim(' ') }
+            val sourceDestination = definition.split("""\s*->\s*""".toRegex()).map { it.trim(' ') }
+            println(sourceDestination)
             if (sourceDestination.size == 2) {
                 val (source,destination) = sourceDestination
-                val sourceWorkerPort = source.split(Regex.fromLiteral("""\s*:\s*""")).map { it.trim(' ') }
+                val sourceWorkerPort = source.split("""\s*:\s*""".toRegex()).map { it.trim(' ') }
                 if (sourceWorkerPort.size != 3) {
                     throw Throwable("invalid source worker:Port definition $source")
                 }
                 val (sourceJar,sourceWorker,sourcePort) = sourceWorkerPort
-                val destinationWorkerPort = destination.split(Regex.fromLiteral("""\s*:\s*""")).map { it.trim(' ') }
-                if (destinationWorkerPort.size != 2) {
+                val destinationWorkerPort = destination.split("""\s*:\s*""".toRegex()).map { it.trim(' ') }
+                if (destinationWorkerPort.size != 3) {
                     throw Throwable("invalid destination worker:Port definition $destination")
                 }
                 val (destinationJar,destinationWorker,destinationPort) = destinationWorkerPort
@@ -119,6 +136,20 @@ class Link(
                 throw Throwable("invalid link definition $definition")
             }
         }
+    }
+    override fun toString(): String {
+        return """
+            {
+                _type : ${this.javaClass.name},
+                _file : ${this.javaClass.protectionDomain.codeSource.location.file},
+                sourceJar : $sourceJar,
+                sourceWorker : $sourceWorker,
+                sourcePort : $sourcePort,
+                destinationJar : $destinationJar,
+                destinationWorker : $destinationWorker,
+                destinationPort : $destinationPort,
+            }
+        """.trimIndent()
     }
 }
 
@@ -144,19 +175,27 @@ class CompositeWorker:Worker(
             worker.run(wports)
         }
         val sourcePacketsToRemove: MutableList<Link> = mutableListOf()
-        links.forEach { link ->
-            val srcWorker = workers[link.sourceWorker]
-            val srcPort = workerPorts[srcWorker]!![link.sourcePort]!!
+        for(link in links) {
+            val srcWorker = workers[link.getSourceKey()]
+            println("workers[${link.getSourceKey()}] === $srcWorker ")
+            val srcPort = try{
+                workerPorts[srcWorker]!![link.sourcePort]!!
+            }catch(x:Throwable){
+                declarePort(srcWorker!!,link.sourcePort)
+                workerPorts[srcWorker]!![link.sourcePort] = mutableListOf()
+                workerPorts[srcWorker]!![link.sourcePort]!!
+                // throw Throwable("could not find port ${link.sourcePort} in workerPorts[$srcWorker] === ${workerPorts[srcWorker]}")
+            }
             if (srcPort.size > 0) {
-                val destWorker = workers[link.destinationWorker]
+                val destWorker = workers[link.getDestinationKey()]
                 val destPort = workerPorts[destWorker]!![link.destinationPort]!!
                 val packet = srcPort.first()
                 destPort.add(packet)
                 sourcePacketsToRemove.add(link)
             }
         }
-        sourcePacketsToRemove.forEach { link ->
-            val srcWorker = workers[link.sourceWorker]
+        for(link in sourcePacketsToRemove) {
+            val srcWorker = workers[link.getDestinationKey()]
             val srcPort = workerPorts[srcWorker]!![link.sourcePort]!!
             if (srcPort.size > 0) {
                 srcPort.removeAt(0)
