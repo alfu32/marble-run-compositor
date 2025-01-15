@@ -4,18 +4,25 @@ import eu.ec.oib.training.alferio.Worker
 import java.time.LocalDateTime
 
 
-class WorkerMultiply(): Worker() {
+class WorkerFanOut(
+    var portsCount:Int = 3
+): Worker() {
+    private var branches:MutableList<String>
     init {
-        this.declaredPorts = "in,out,out2,out3,err".split(',').toMutableList()
+        val n = portsCount.toString().length
+        this.branches = (1..portsCount).map { "out${java.lang.String.format("%0${n}",portsCount)}" }.toMutableList()
+        this.declaredPorts = mutableListOf("in","err")
+        this.declaredPorts.addAll(this.branches)
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        super.run(ports)
         // println does nothing
-        println("WorkerMultiply duplicates each packet to out,out2 and out3")
-        val all = mutableListOf<ByteArray>()
+        println("WorkerFanOut duplicates each packet from in to ${this.branches.joinToString(",")}")
         for(pack in ports["in"]!!){
-            ports["out"]!!.add(pack)
-            ports["out2"]!!.add(pack)
-            ports["out3"]!!.add(pack)
+            for (outputKey in branches) {
+                ports[outputKey]!!.add(pack)
+            }
         }
     }
 }
@@ -25,6 +32,7 @@ class WorkerPipethrough(): Worker() {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        super.run(ports)
         // println does nothing
         println("WorkerPipethrough pipes in to out through")
         val all = mutableListOf<ByteArray>()
@@ -39,6 +47,7 @@ class WorkerPrintPorts(): Worker() {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        super.run(ports)
         // println does nothing
         println("WorkerPrintPorts prints all the ports and their content")
         println("${this.jarPath} worker ${this.javaClass.name} port ")
@@ -57,6 +66,7 @@ class WorkerClearSink(): Worker() {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        super.run(ports)
         // println does nothing
         println("WorkerNull drains in,out and err ports")
         for(kv in ports) {
@@ -64,24 +74,31 @@ class WorkerClearSink(): Worker() {
         }
     }
 }
-class WorkerMergeAll(): Worker() {
+class WorkerMergeAll(
+    var targetPort: String = "out"
+): Worker() {
     init {
-        this.declaredPorts = "in,out,err".split(',').toMutableList()
+        this.declaredPorts = "in,$targetPort,err".split(',').toMutableList()
     }
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
+        super.run(ports)
         // println does nothing
         println("WorkerIdentity pipes everything to out ")
         val all = mutableListOf<ByteArray>()
         for( kv in ports){
-            for(pack in kv.value){
-                all.add(pack)
+            if(kv.key != targetPort) {
+                for (pack in kv.value) {
+                    all.add(pack)
+                }
             }
         }
         ports.forEach { port, queue -> queue.clear() }
-        ports["out"] = all
+        ports[targetPort] = all
     }
 }
-class WorkerTimer(): Worker() {
+class WorkerTimer(
+    var interval:String=""
+): Worker() {
     init {
         this.declaredPorts = "out".split(',').toMutableList()
     }

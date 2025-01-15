@@ -11,7 +11,16 @@ abstract class Worker(
 ) {
     lateinit var jarPath: String
     open var declaredPorts: MutableList<String> = mutableListOf()
-    abstract fun run(ports: MutableMap<String,MutableList<ByteArray>>)
+    private fun ensurePorts(ports: MutableMap<String,MutableList<ByteArray>>){
+        for (port in declaredPorts) {
+            if (port !in ports){
+                ports[port] = mutableListOf()
+            }
+        }
+    }
+    open fun run(ports: MutableMap<String,MutableList<ByteArray>>){
+        ensurePorts(ports)
+    }
     override fun toString(): String {
         return """
             {
