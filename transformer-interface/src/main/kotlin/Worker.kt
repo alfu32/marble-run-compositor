@@ -145,6 +145,7 @@ class Link(
                 throw Throwable("invalid link definition $definition")
             }
         }
+
     }
     override fun toString(): String {
         return """
@@ -162,6 +163,19 @@ class Link(
     }
 }
 
+enum class ScriptStatementType(
+    var regexValue:Regex
+) {
+    COMMENT("""^#.*?$""".toRegex(RegexOption.IGNORE_CASE)),
+    EMPTY("""^$""".toRegex(RegexOption.IGNORE_CASE)),
+    LINK("""^[\t\s]+(link|queue)[\t\s]+(copy|move)?[\t\s]+[a-zA-Z0-9_:]+[\t\s]*->[\t\s]*[a-zA-Z0-9._:]+""".toRegex(setOf(RegexOption.DOT_MATCHES_ALL,RegexOption.MULTILINE))),
+    VARIABLE("""^[\t\s]+var[\t\s]+[a-zA-Z0-9_]+[\t\s]*=[\t\s]*[a-zA-Z0-9._:]+""".toRegex(setOf(RegexOption.DOT_MATCHES_ALL,RegexOption.MULTILINE))),
+    INSTANCE("""^[\t\s]+var[\t\s]+[a-zA-Z0-9_]+[\t\s]*=[\t\s]*[a-zA-Z0-9._:]+""".toRegex(setOf(RegexOption.DOT_MATCHES_ALL,RegexOption.MULTILINE))),
+}
+class TypedMap(
+    var values:MutableMap<String,String> = mutableMapOf(),
+    var mapType:ScriptStatementType = ScriptStatementType.EMPTY
+)
 class CompositeWorker:Worker(
 ){
     /**
@@ -249,6 +263,19 @@ class CompositeWorker:Worker(
                 declarePort(dw,link.sourcePort)
             }
 
+            return composite
+        }
+        fun fromScript(scriptText: String): CompositeWorker{
+            val composite = CompositeWorker()
+            var parser = Parser()
+
+            val script = parser.parse(scriptText)
+            for (worker in parser.instances) {
+                // addWorkerInstance(composite,worker.value.workerRef)
+            }
+            for (link in parser.links) {
+                // addWorkerInstance(composite,worker.value.workerRef)
+            }
             return composite
         }
     }
