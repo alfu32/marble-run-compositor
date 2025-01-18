@@ -9,11 +9,20 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/intellij-mbrun-plugin" />
             <option value="$PROJECT_DIR$/transformer-base64decode" />
             <option value="$PROJECT_DIR$/transformer-base64encode" />
             <option value="$PROJECT_DIR$/transformer-identity" />
             <option value="$PROJECT_DIR$/transformer-interface" />
             <option value="$PROJECT_DIR$/workers-lib-std" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/mbrun-intellij-plugin" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/mbrun-intellij-plugin" />
           </set>
         </option>
       </GradleProjectSettings>
