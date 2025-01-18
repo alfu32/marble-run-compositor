@@ -14,10 +14,10 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-  version.set("2023.1.5")
+  version.set("2023.2")
   type.set("IC") // Target IDE Platform
 
-  plugins.set(listOf(/* Plugin Dependencies */))
+  plugins.set(listOf("java"))
 }
 
 tasks {
@@ -30,9 +30,14 @@ tasks {
     kotlinOptions.jvmTarget = "17"
   }
 
+
   patchPluginXml {
-    sinceBuild.set("231")
-    untilBuild.set("241.*")
+    version.set(project.version.toString())
+    sinceBuild.set("231")  // e.g. 231 = 2023.1 baseline
+    untilBuild.set("")     // or a specific upper build number
+    changeNotes.set("""
+            Initial version.
+        """.trimIndent())
   }
 
   signPlugin {
