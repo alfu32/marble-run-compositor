@@ -3,7 +3,7 @@ package eu.ec.oib.training.alferio
 /**
  * The root node: a script with multiple statements.
  */
-data class Script(val statements: List<Statement>) {
+class Script(val statements: List<Statement>) {
     override fun toString(): String {
         return """
             Script {
@@ -12,6 +12,20 @@ data class Script(val statements: List<Statement>) {
         }
             }
         """.trimIndent()
+    }
+
+    operator fun component1():List<VarDeclaration>{
+        //TODO("implement filter")
+        return statements.filterIsInstance<VarDeclaration>()
+    }
+
+    operator fun component2():List<InstanceDeclaration>{
+        //TODO("implement filter")
+        return statements.filterIsInstance<InstanceDeclaration>()
+    }
+    operator fun component3():List<LinkDeclaration>{
+        //TODO("implement filter")
+        return statements.filterIsInstance<LinkDeclaration>()
     }
 }
 
