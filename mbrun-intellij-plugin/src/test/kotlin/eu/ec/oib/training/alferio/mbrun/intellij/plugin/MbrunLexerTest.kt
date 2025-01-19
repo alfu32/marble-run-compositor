@@ -163,7 +163,7 @@ class MbrunLexerTest {
         assertEquals(MbrunTokens.WHITESPACE, tokens[5])
         assertEquals(MbrunTokens.JAR, tokens[6])
         assertEquals(MbrunTokens.COLON, tokens[7])
-        assertEquals(MbrunTokens.PROTOTYPE, tokens[8])
+        assertEquals(MbrunTokens.CLASS_NAME, tokens[8])
     }
 
     @Test

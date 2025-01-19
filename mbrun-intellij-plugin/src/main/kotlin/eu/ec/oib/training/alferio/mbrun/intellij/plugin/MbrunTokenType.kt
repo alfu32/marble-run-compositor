@@ -19,7 +19,7 @@ object MbrunTokens {
 
     val JAR             = MbrunTokenType("JAR")
     val PORT             = MbrunTokenType("PORT")
-    val PROTOTYPE             = MbrunTokenType("PROTOTYPE")
+    val CLASS_NAME             = MbrunTokenType("PROTOTYPE")
     val WORKER             = MbrunTokenType("WORKER")
     val VARIABLE_NAME     = MbrunTokenType("VARIABLE_NAME")
     val VARIABLE_REFERENCE     = MbrunTokenType("VARIABLE_REFERENCE")

@@ -2,7 +2,6 @@ package eu.ec.oib.training.alferio.mbrun.intellij.plugin
 
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
@@ -25,13 +24,13 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
             MbrunTokens.KEYWORD_COPY,
             MbrunTokens.KEYWORD_MOVE -> arrayOf(KEYWORD)
 
+            MbrunTokens.INSTANCE,
             MbrunTokens.VARIABLE_NAME -> arrayOf(NAME_DECLARATION)
             MbrunTokens.VARIABLE_REFERENCE -> arrayOf(REFERENCE)
             MbrunTokens.IDENTIFIER,
-            MbrunTokens.INSTANCE,
-            MbrunTokens.PROTOTYPE,
             MbrunTokens.WORKER-> arrayOf(VARIABLE_OR_INSTANCE)
             MbrunTokens.JAR-> arrayOf(PACKAGE)
+            MbrunTokens.CLASS_NAME,
             MbrunTokens.PORT-> arrayOf(PORT)
             MbrunTokens.CONSTRUCTOR_KEY -> arrayOf(MAP_KEY)
             MbrunTokens.CONSTRUCTOR_VALUE -> arrayOf(MAP_VALUE)
@@ -77,8 +76,8 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
                 Color(0x277FFF),  // foreground color (Cyan)
                 null,
                 Color(0x277FFF),
-                EffectType.LINE_UNDERSCORE,
-                Font.BOLD
+                EffectType.BOLD_DOTTED_LINE,
+                Font.PLAIN
             )
         )
         val MAP_KEY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(

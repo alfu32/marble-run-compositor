@@ -208,9 +208,9 @@ class MbrunLexer : Lexer() {
             }
 
             // 6) Otherwise parse either identifier or unknown text
-            if (c.isLetterOrDigit() || "_-$/\\".contains(c)) {
+            if (c.isLetterOrDigit() || "_-$/\\.".contains(c)) {
                 val startPos = offset
-                offset = consumeWhile(offset) { it.isLetterOrDigit() || "_-$/\\".contains(it) }
+                offset = consumeWhile(offset) { it.isLetterOrDigit() || "_-$/\\.".contains(it) }
                 val text = buffer.substring(startPos, offset)
 
                 // Check if it's a recognized keyword
@@ -230,13 +230,15 @@ class MbrunLexer : Lexer() {
                         }else if(previousTokensMatch(listOf(MbrunTokens.INSTANCE,MbrunTokens.EQUAL))){
                             MbrunTokens.JAR
                         }else if(previousTokensMatch(listOf(MbrunTokens.JAR,MbrunTokens.COLON))){
-                            MbrunTokens.PROTOTYPE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.PROTOTYPE))){
+                            MbrunTokens.CLASS_NAME
+                        }else if(previousTokensMatch(listOf(MbrunTokens.CLASS_NAME))){
                             MbrunTokens.CONSTRUCTOR_KEY
                         }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_KEY,MbrunTokens.EQUAL))){
                             MbrunTokens.CONSTRUCTOR_VALUE
                         }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_VALUE))){
                             MbrunTokens.CONSTRUCTOR_KEY
+                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_MOVE))){
+                            MbrunTokens.VARIABLE_REFERENCE
                         }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_COPY))){
                             MbrunTokens.VARIABLE_REFERENCE
                         }else if(previousTokensMatch(listOf(MbrunTokens.ARROW))){
