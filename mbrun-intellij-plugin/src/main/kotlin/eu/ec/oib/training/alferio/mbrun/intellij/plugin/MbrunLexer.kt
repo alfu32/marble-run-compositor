@@ -113,6 +113,26 @@ class MbrunLexer : Lexer() {
     // -------------------------
     //   Tokenization Logic
     // -------------------------
+    private fun previousTokenIndex(start:Int,predicate: (value:TokenInfo,index:Int) -> Boolean) :Int {
+        var i=start;
+        while (i>=0 && tokens[i].type != MbrunTokens.WHITESPACE && !predicate(tokens[i],i)) {
+            if(predicate(tokens[i],i)){
+                return i
+            }
+            i--
+        }
+        return -1
+    }
+    private fun previousTokensMatch(list: List<IElementType>) :Boolean {
+        val mi=list.size;
+        val match = list.joinToString(","){it.toString()}
+        val tokensString = tokens.filter{it.type != MbrunTokens.WHITESPACE}.takeLast(mi).joinToString(",") { it.type.toString()  }
+        // if(tokensString != "") {
+        //     println("filtered (${tokens.size})tokens == $tokensString ")
+        //     println("tokens to match == $match ")
+        // }
+        return tokensString == match
+    }
 
     private fun tokenize() {
         var offset = bufferStart
@@ -145,7 +165,24 @@ class MbrunLexer : Lexer() {
 
             // 4) Check single-char punctuation
             if (c == '=') {
-                tokens += TokenInfo(MbrunTokens.EQUAL, offset, offset + 1)
+                tokens+=TokenInfo(MbrunTokens.EQUAL, offset, offset + 1)
+                //var i = previousTokenIndex(tokens.size-1) {v,_ -> v.type != MbrunTokens.IDENTIFIER}
+                //if(i>0){
+                //    var lastToken=tokens[i]
+                //    tokens += when (lastToken.type) {
+                //        MbrunTokens.KEYWORD_VAR -> {
+                //            TokenInfo(MbrunTokens.ASSIGN_OP, offset, offset + 1)
+                //        }
+                //
+                //        MbrunTokens.KEYWORD_INSTANCE -> {
+                //            TokenInfo(MbrunTokens.ALIAS, offset, offset + 1)
+                //        }
+                //
+                //        else -> {
+                //            TokenInfo(MbrunTokens.EQUAL, offset, offset + 1)
+                //        }
+                //    }
+                //}
                 offset++
                 continue
             }
@@ -171,7 +208,7 @@ class MbrunLexer : Lexer() {
             }
 
             // 6) Otherwise parse either identifier or unknown text
-            if (c.isLetterOrDigit() || c == '_' || c == '$') {
+            if (c.isLetterOrDigit() || c == '_' || c == '-' || c == '$' || c == '/' || c == '\\') {
                 val startPos = offset
                 offset = consumeWhile(offset) { it.isLetterOrDigit() || it == '_' || it == '$' }
                 val text = buffer.substring(startPos, offset)
@@ -183,7 +220,33 @@ class MbrunLexer : Lexer() {
                     "link" -> MbrunTokens.KEYWORD_LINK
                     "copy" -> MbrunTokens.KEYWORD_COPY
                     "move" -> MbrunTokens.KEYWORD_MOVE
-                    else -> MbrunTokens.IDENTIFIER
+                    else -> {
+                        if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_VAR))){
+                            MbrunTokens.VARIABLE_NAME
+                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_VAR,MbrunTokens.VARIABLE_NAME,MbrunTokens.EQUAL))){
+                            MbrunTokens.STRING_LITERAL
+                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_INSTANCE))){
+                            MbrunTokens.INSTANCE
+                        }else if(previousTokensMatch(listOf(MbrunTokens.INSTANCE,MbrunTokens.EQUAL))){
+                            MbrunTokens.JAR
+                        }else if(previousTokensMatch(listOf(MbrunTokens.JAR,MbrunTokens.COLON))){
+                            MbrunTokens.PROTOTYPE
+                        }else if(previousTokensMatch(listOf(MbrunTokens.PROTOTYPE))){
+                            MbrunTokens.CONSTRUCTOR_KEY
+                        }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_KEY,MbrunTokens.EQUAL))){
+                            MbrunTokens.CONSTRUCTOR_VALUE
+                        }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_VALUE))){
+                            MbrunTokens.CONSTRUCTOR_KEY
+                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_COPY))){
+                            MbrunTokens.VARIABLE_REFERENCE
+                        }else if(previousTokensMatch(listOf(MbrunTokens.ARROW))){
+                            MbrunTokens.VARIABLE_REFERENCE
+                        }else if(previousTokensMatch(listOf(MbrunTokens.VARIABLE_REFERENCE,MbrunTokens.COLON))){
+                            MbrunTokens.PORT
+                        } else {
+                            MbrunTokens.IDENTIFIER
+                        }
+                    }
                 }
                 tokens += TokenInfo(tokenType, startPos, offset)
                 continue

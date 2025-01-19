@@ -25,8 +25,16 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
             MbrunTokens.KEYWORD_COPY,
             MbrunTokens.KEYWORD_MOVE -> arrayOf(KEYWORD)
 
-            MbrunTokens.VARIABLE_NAME,
-            MbrunTokens.IDENTIFIER -> arrayOf(VARIABLE_OR_INSTANCE)
+            MbrunTokens.VARIABLE_NAME -> arrayOf(NAME_DECLARATION)
+            MbrunTokens.VARIABLE_REFERENCE -> arrayOf(REFERENCE)
+            MbrunTokens.IDENTIFIER,
+            MbrunTokens.INSTANCE,
+            MbrunTokens.PROTOTYPE,
+            MbrunTokens.WORKER-> arrayOf(VARIABLE_OR_INSTANCE)
+            MbrunTokens.JAR-> arrayOf(PACKAGE)
+            MbrunTokens.PORT-> arrayOf(PORT)
+            MbrunTokens.CONSTRUCTOR_KEY -> arrayOf(MAP_KEY)
+            MbrunTokens.CONSTRUCTOR_VALUE -> arrayOf(MAP_VALUE)
 
             MbrunTokens.STRING_LITERAL -> arrayOf(TEXT_LITERAL)
 
@@ -49,6 +57,50 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
                 null,             // effect color
                 null,             // effect type
                 Font.BOLD
+            )
+        )
+        val NAME_DECLARATION: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+            "MBRUN_NAME_DECLARATION",
+            // Regular Cyan
+            TextAttributes(
+                Color(0x277FFF),  // foreground color (Cyan)
+                null,
+                Color(0x277FFF),
+                EffectType.LINE_UNDERSCORE,
+                Font.BOLD
+            )
+        )
+        val REFERENCE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+            "MBRUN_REFERENCE",
+            // Regular Cyan
+            TextAttributes(
+                Color(0x277FFF),  // foreground color (Cyan)
+                null,
+                Color(0x277FFF),
+                EffectType.LINE_UNDERSCORE,
+                Font.BOLD
+            )
+        )
+        val MAP_KEY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+            "MBRUN_MAP_KEY",
+            // Regular Cyan
+            TextAttributes(
+                Color(0x4A8F59),  // foreground color (Cyan)
+                null,
+                null,
+                null,
+                Font.ITALIC
+            )
+        )
+        val MAP_VALUE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+            "MBRUN_MAP_VALUE",
+            // Regular Cyan
+            TextAttributes(
+                Color(0xC1CDC5),  // foreground color (Cyan)
+                null,
+                null,
+                null,
+                Font.PLAIN
             )
         )
 
@@ -76,6 +128,18 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
             )
         )
 
+        val PACKAGE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+            "MBRUN_PACKAGE",
+            // This might be used if you want to highlight "port" specifically,
+            // but let's assume we highlight them with the same as punctuation or differently
+            TextAttributes(
+                Color(0xBC4D00),  // Yellow
+                null,
+                null,
+                null,
+                Font.PLAIN
+            )
+        )
         val PORT: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
             "MBRUN_PORT",
             // This might be used if you want to highlight "port" specifically,
@@ -93,7 +157,7 @@ class MbrunSyntaxHighlighter : SyntaxHighlighter {
             "MBRUN_PUNCTUATION",
             // Fuchsia
             TextAttributes(
-                Color(0xFF00FF),
+                Color(0xFFB7FF),
                 null,
                 null,
                 null,

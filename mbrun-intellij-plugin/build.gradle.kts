@@ -10,6 +10,10 @@ version = "1.0-SNAPSHOT"
 repositories {
   mavenCentral()
 }
+dependencies{
+  testImplementation("org.jetbrains.kotlin:kotlin-test")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+}
 
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -40,13 +44,13 @@ tasks {
         """.trimIndent())
   }
 
-  signPlugin {
-    certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-    privateKey.set(System.getenv("PRIVATE_KEY"))
-    password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-  }
-
-  publishPlugin {
-    token.set(System.getenv("PUBLISH_TOKEN"))
-  }
+  //// signPlugin {
+  ////   certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
+  ////   privateKey.set(System.getenv("PRIVATE_KEY"))
+  ////   password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+  //// }
+  ////
+  //// publishPlugin {
+  ////   token.set(System.getenv("PUBLISH_TOKEN"))
+  //// }
 }

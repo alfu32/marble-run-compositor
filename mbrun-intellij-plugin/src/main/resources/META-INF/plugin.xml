@@ -25,7 +25,11 @@
   <depends>com.intellij.modules.lang</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileType name="MbrunFileType" implementationClass="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunFileType"/>
+    <fileType
+            name="mbrun file"
+            language="MBRUN"
+            implementationClass="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunFileType"
+            extensions="mbrun" />
     <lang.syntaxHighlighterFactory
             language="MBRUN"
             implementationClass="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunSyntaxHighlighterFactory"/>

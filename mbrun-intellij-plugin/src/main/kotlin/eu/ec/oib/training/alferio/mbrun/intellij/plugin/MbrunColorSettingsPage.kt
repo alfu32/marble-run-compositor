@@ -22,12 +22,35 @@ class MbrunColorSettingsPage : ColorSettingsPage {
     override fun getAttributeDescriptors(): Array<AttributesDescriptor> = descriptors
     override fun getColorDescriptors() = emptyArray<com.intellij.openapi.options.colors.ColorDescriptor>()
     override fun getDemoText(): String = """
-        # comment
-        var MK="10"
-        instance genNumber1 = libs/stdlib.jar:com.mbrun.SequenceGeneratorWorker maxValue="$MK"
-        link copy genNumber1 -> logSink:in
-        link move genNumber1:out -> devnull:in
+        # hello
+        # variables
+        var MM="10"
+        
+        # worker instances
+        instance config=libs/std.jar:org.marblerun.std.ReadStaticJson file=settings.json
+        instance fanout1=libs/std.jar:org.marblerun.std.FanOut outputs=3
+        instance timer=libs/std.jar:org.marblerun.std.Timer cron="*/10 * * * * *"
+        instance counter=libs/std.jar:org.marblerun.std.Counter
+        instance log=libs/std.jar:org.marblerun.sys.FileBuffer file="log.txt"
+        instance stdout=libs/std.jar:org.marblerun.sys.Stdout
+        instance stderr=libs/std.jar:org.marblerun.sys.Stderr
+        instance null=libs/std.jar:org.marblerun.sys.DevNull
+        instance worker1=project/a.b.c.d.Passthrough
+        instance worker2=project/a.b.c.d.Passthrough
+        
+        # topology
+        link copy config:out -> timer:config
+        link copy config:out -> counter:config
+        link move timer:out -> fanout1:in
+        link move fanout1:out0 -> worker1:in
+        link move fanout1:out1 -> worker2:in
+        link move fanout1:out1 -> counter:in
+        link move worker1:out -> stdout:in
+        link move worker1:err -> stderr:in
+        link move worker2:out -> log:in
+        link move worker2:err -> null:in
+        link move counter:out -> log:in
     """.trimIndent()
 
-    override fun getFileType(): FileType = MbrunFileType
+    fun getFileType(): FileType = MbrunFileType()
 }

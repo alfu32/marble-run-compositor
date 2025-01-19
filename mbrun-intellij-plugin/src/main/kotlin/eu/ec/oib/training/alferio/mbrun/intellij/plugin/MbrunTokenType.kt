@@ -13,7 +13,16 @@ object MbrunTokens {
     val KEYWORD_MOVE      = MbrunTokenType("KEYWORD_MOVE")
 
     val IDENTIFIER        = MbrunTokenType("IDENTIFIER")
+    val INSTANCE        = MbrunTokenType("INSTANCE")
+    val CONSTRUCTOR_KEY        = MbrunTokenType("CONSTRUCTOR_KEY")
+    val CONSTRUCTOR_VALUE        = MbrunTokenType("CONSTRUCTOR_VALUE")
+
+    val JAR             = MbrunTokenType("JAR")
+    val PORT             = MbrunTokenType("PORT")
+    val PROTOTYPE             = MbrunTokenType("PROTOTYPE")
+    val WORKER             = MbrunTokenType("WORKER")
     val VARIABLE_NAME     = MbrunTokenType("VARIABLE_NAME")
+    val VARIABLE_REFERENCE     = MbrunTokenType("VARIABLE_REFERENCE")
 
     val STRING_LITERAL    = MbrunTokenType("STRING_LITERAL")
 
