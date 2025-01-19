@@ -208,9 +208,9 @@ class MbrunLexer : Lexer() {
             }
 
             // 6) Otherwise parse either identifier or unknown text
-            if (c.isLetterOrDigit() || c == '_' || c == '-' || c == '$' || c == '/' || c == '\\') {
+            if (c.isLetterOrDigit() || "_-$/\\".contains(c)) {
                 val startPos = offset
-                offset = consumeWhile(offset) { it.isLetterOrDigit() || it == '_' || it == '$' }
+                offset = consumeWhile(offset) { it.isLetterOrDigit() || "_-$/\\".contains(it) }
                 val text = buffer.substring(startPos, offset)
 
                 // Check if it's a recognized keyword
