@@ -54,6 +54,8 @@ class MbrunLexer : Lexer() {
         tokens.clear()
         currentTokenIndex = 0
 
+        //while(bufferStart != 0 && buffer[bufferStart] != '\n' ){bufferStart--}
+
         // Actually lex the entire input into 'tokens'
         tokenize()
     }
@@ -212,6 +214,15 @@ class MbrunLexer : Lexer() {
                 val startPos = offset
                 offset = consumeWhile(offset) { it.isLetterOrDigit() || "_-$/\\.".contains(it) }
                 val text = buffer.substring(startPos, offset)
+                val last = listOf(
+                    "",
+                    tokens.filter{tk -> tk.type != MbrunTokens.WHITESPACE}.takeLast(1).joinToString(","){(it.type as MbrunTokenType).toString()},
+                    tokens.filter{tk -> tk.type != MbrunTokens.WHITESPACE}.takeLast(2).joinToString(","){(it.type as MbrunTokenType).toString()},
+                    tokens.filter{tk -> tk.type != MbrunTokens.WHITESPACE}.takeLast(3).joinToString(","){(it.type as MbrunTokenType).toString()},
+                    tokens.filter{tk -> tk.type != MbrunTokens.WHITESPACE}.takeLast(4).joinToString(","){(it.type as MbrunTokenType).toString()},
+                    tokens.filter{tk -> tk.type != MbrunTokens.WHITESPACE}.takeLast(5).joinToString(","){(it.type as MbrunTokenType).toString()},
+                )
+                println("tokenizing $text in ${last[5]}")
 
                 // Check if it's a recognized keyword
                 val tokenType = when (text) {
@@ -221,29 +232,29 @@ class MbrunLexer : Lexer() {
                     "copy" -> MbrunTokens.KEYWORD_COPY
                     "move" -> MbrunTokens.KEYWORD_MOVE
                     else -> {
-                        if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_VAR))){
+                        if(last[1] == "KEYWORD_VAR"){
                             MbrunTokens.VARIABLE_NAME
-                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_VAR,MbrunTokens.VARIABLE_NAME,MbrunTokens.EQUAL))){
+                        }else if(last[3] == "KEYWORD_VAR,VARIABLE_NAME,EQUAL"){
                             MbrunTokens.STRING_LITERAL
-                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_INSTANCE))){
+                        }else if(last[1] == "KEYWORD_INSTANCE"){
                             MbrunTokens.INSTANCE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.INSTANCE,MbrunTokens.EQUAL))){
+                        }else if(last[2] == "INSTANCE,EQUAL"){
                             MbrunTokens.JAR
-                        }else if(previousTokensMatch(listOf(MbrunTokens.JAR,MbrunTokens.COLON))){
+                        }else if(last[2] == "JAR,COLON"){
                             MbrunTokens.CLASS_NAME
-                        }else if(previousTokensMatch(listOf(MbrunTokens.CLASS_NAME))){
+                        }else if(last[1] == "CLASS_NAME"){
                             MbrunTokens.CONSTRUCTOR_KEY
-                        }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_KEY,MbrunTokens.EQUAL))){
+                        }else if(last[2]=="CONSTRUCTOR_KEY"){
                             MbrunTokens.CONSTRUCTOR_VALUE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.CONSTRUCTOR_VALUE))){
+                        }else if(last[1] == "CONSTRUCTOR_VALUE"){
                             MbrunTokens.CONSTRUCTOR_KEY
-                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_MOVE))){
+                        }else if(last[1] == "KEYWORD_MOVE"){
                             MbrunTokens.VARIABLE_REFERENCE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.KEYWORD_COPY))){
+                        }else if(last[1] == "KEYWORD_COPY"){
                             MbrunTokens.VARIABLE_REFERENCE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.ARROW))){
+                        }else if(last[1] == "ARROW"){
                             MbrunTokens.VARIABLE_REFERENCE
-                        }else if(previousTokensMatch(listOf(MbrunTokens.VARIABLE_REFERENCE,MbrunTokens.COLON))){
+                        }else if(last[2] == "VARIABLE_REFERENCE,COLON"){
                             MbrunTokens.PORT
                         } else {
                             MbrunTokens.IDENTIFIER

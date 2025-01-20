@@ -21,7 +21,10 @@ intellij {
   version.set("2023.2")
   type.set("IC") // Target IDE Platform
 
-  plugins.set(listOf("java"))
+  plugins.set(listOf(
+    "java",
+    "org.intellij.intelliLang",
+  ))
 }
 
 tasks {

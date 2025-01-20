@@ -23,6 +23,7 @@
   <depends>com.intellij.modules.platform</depends> -->
   <!-- This line tells IntelliJ we depend on the base language APIs. -->
   <depends>com.intellij.modules.lang</depends>
+  <depends>org.intellij.intelliLang</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <fileType
@@ -33,12 +34,11 @@
     <lang.syntaxHighlighterFactory
             language="MBRUN"
             implementationClass="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunSyntaxHighlighterFactory"/>
+    <!-- Register your language injection support -->
+    <languageInjector
+            implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunMultiHostInjector"/>
     <colorSettingsPage
             implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunColorSettingsPage"/>
-  </extensions>
-
-  <!-- Register the color settings page -->
-  <extensions defaultExtensionNs="com.intellij">
     <colorSettingsPage implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunColorSettingsPage"/>
   </extensions>
 </idea-plugin>
