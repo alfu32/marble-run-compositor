@@ -1,6 +1,6 @@
 {
   "name": "mbrun-vscode-extension",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "publisher": "marble run",
   "scripts": {
@@ -19,6 +19,7 @@
   "categories": [
     "Programming Languages"
   ],
+  "icon": "images/icon.png",
   "contributes": {
     "languages": [
       {
