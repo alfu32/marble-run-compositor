@@ -1,4 +1,7 @@
+import org.intellij.lang.annotations.Language
+
 fun main(args: Array<String>) {
+    @Language("mbrun")
     var test_string = """
         # hello
         # variables

@@ -37,6 +37,8 @@
     <!-- Register your language injection support -->
     <languageInjector
             implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunMultiHostInjector"/>
+    <lang.parserDefinition language="MBRUN"
+                           implementationClass="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunParserDefinition"/>
     <colorSettingsPage
             implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunColorSettingsPage"/>
     <colorSettingsPage implementation="eu.ec.oib.training.alferio.mbrun.intellij.plugin.MbrunColorSettingsPage"/>
