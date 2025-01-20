@@ -8,7 +8,7 @@ instance fanOut1=libs/std.jar:org.marbleRun.std.FanOut outputs="3"
 instance timer=libs/std.jar:org.marbleRun.std.Timer cron="*/10 * * * * *"
 instance counter=libs/std.jar:org.marbleRun.std.Counter
 instance log=libs/std.jar:org.marbleRun.sys.FileBuffer file="log.txt"
-instance stdout=libs/std.jar:org.marbleRun.sys.Stdout
+instance stdout=libs/std.jar:org.marbleRun.sys.Stdout buffer=false
 instance stderr=libs/std.jar:org.marbleRun.sys.Stderr
 instance null=libs/std.jar:org.marbleRun.sys.DevNull
 instance worker1=project/my-entities.jar:a.b.c.d.PassThrough
