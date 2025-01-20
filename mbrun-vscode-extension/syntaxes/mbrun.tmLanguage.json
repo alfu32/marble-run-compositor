@@ -1,0 +1,82 @@
+{
+  "name": "MBrun",
+  "scopeName": "source.mbrun",
+  "fileTypes": ["mbrun"],
+  "patterns": [
+    {
+      "name": "comment.line.mbrun",
+      "match": "^(#).*$"
+    },
+    {
+      "name": "meta.var-declaration.mbrun",
+      "match": "^\\s*(var)\\s+([A-Za-z0-9_]+)\\s*=\\s*(\"[^\"]*\"|\\d+)",
+      "captures": {
+        "1": { "name": "keyword.control.mbrun" },           
+        "2": { "name": "variable.mbrun" },             
+        "3": { "patterns": [
+          {
+            "name": "constant.mbrun",
+            "match": ".*"
+          }
+        ]}
+      }
+    },
+    {
+      "name": "meta.instance-declaration.mbrun",
+      "match": "^\\s*(instance)\\s+([A-Za-z0-9_]+)\\s*=\\s*([\\w/\\.-]+\\.jar):([A-Za-z0-9_\\.]+)(.*)$",
+      "captures": {
+        "1": { "name": "keyword.control.mbrun" },             
+        "2": { "name": "entity.name.tag.mbrun" },        
+        "3": { "name": "entity.name.function.mbrun" },             
+        "4": { "name": "entity.name.class.mbrun" },           
+        "5": { 
+          "patterns": [
+            {
+              "name": "meta.instance-params.mbrun",
+              "match": "\\s+([A-Za-z0-9_]+)\\s*=\\s*(\"[^\"]*\"|\\S+)",
+              "captures": {
+                "1": { "name": "constant.language.mbrun" },
+                "2": { "name": "constant.numeric.mbrun" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "meta.link-declaration.mbrun",
+      "match": "^\\s*(link)\\s+(move|copy)\\s+([A-Za-z0-9_]+):([A-Za-z0-9_]+)\\s*->\\s+([A-Za-z0-9_]+):([A-Za-z0-9_]+)\\s*$",
+      "captures": {
+        "1": { "name": "keyword.control.mbrun" },          
+        "2": { "name": "keyword.control.mbrun" },         
+        "3": { "name": "support.function.mbrun" },     
+        "4": { "name": "support.type.mbrun" },         
+        "5": { "name": "support.function.mbrun" },     
+        "6": { "name": "support.type.mbrun" }          
+      }
+    },
+    {
+      "name": "string.quoted.double.mbrun",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "string.quoted.mbrun",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "constant.numeric.mbrun",
+      "match": "\\b\\d+\\b"
+    },
+    {
+      "name": "keyword.control.mbrun",
+      "match": "\\b(var|instance|link|move|copy)\\b"
+    },
+    {
+      "name": "comment.line.mbrun",
+      "match": "#.*$"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "mbrun-vscode-extension",
+  "version": "1.2.1",
+  "description": "",
+  "publisher": "marble run",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "directory": "github.com",
+    "type": "git+https",
+    "url": "https://github.com/alfu32/marble-run-compositor.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mbrun",
+        "extensions": [
+          ".mbrun"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mbrun",
+        "scopeName": "source.mbrun",
+        "path": "./syntaxes/mbrun.tmLanguage.json"
+      }
+    ]
+  }
+}
