@@ -1,7 +1,5 @@
 package eu.ec.oib.training.alferio.mbrun.intellij.plugin
 
-
-
 import com.intellij.lang.*
 import com.intellij.lexer.Lexer
 import com.intellij.psi.FileViewProvider
