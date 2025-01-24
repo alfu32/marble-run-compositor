@@ -5,10 +5,12 @@ import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 import java.nio.file.FileSystem
 import java.nio.file.Paths
+import java.util.Enumeration
 import java.util.jar.JarFile
+import java.util.jar.JarEntry
 
-abstract class Worker(
-) {
+abstract class Worker() {
+    init{}
     lateinit var jarPath: String
     open var declaredPorts: MutableList<String> = mutableListOf()
     private fun ensurePorts(ports: MutableMap<String,MutableList<ByteArray>>){
@@ -18,6 +20,7 @@ abstract class Worker(
             }
         }
     }
+    abstract fun config(conf: Map<String,String>);
     open fun run(ports: MutableMap<String,MutableList<ByteArray>>){
         ensurePorts(ports)
     }
@@ -26,17 +29,13 @@ abstract class Worker(
             {
                 _type : ${this.javaClass.name},
                 _file : ${this.javaClass.protectionDomain.codeSource.location.file},
-                jarPath : $jarPath,
+                jarPath : ${jarPath},
                 declaredPorts : $declaredPorts,
             }
         """.trimIndent()
     }
 }
-
-//getFirstWorkerInstance
-fun getWorkers(jarPath:String):MutableMap<String,Worker>{
-    val workers = mutableMapOf<String,Worker>()
-    // Build the File for the jar in the "transformers" folder
+fun getJar(jarPath: String) : Map<String, Worker> {
     val jarFile = File(jarPath)
     if (!jarFile.exists()) {
         // If the jar doesn't exist, skip
@@ -50,34 +49,70 @@ fun getWorkers(jarPath:String):MutableMap<String,Worker>{
 
         // Open the JAR to scan for classes
         val jar = JarFile(jarFile)
-        val entries = jar.entries()
-
-        // Collect classes implementing Worker
-        while (entries.hasMoreElements()) {
-            val entry = entries.nextElement()
-            if (!entry.isDirectory && entry.name.endsWith(".class")) {
-                val className = entry.name
-                    .removeSuffix(".class")
-                    .replace('/', '.')  // e.g., "com/example/MyClass" -> "com.example.MyClass"
-
-                // Attempt to load the class
-                val clazz = runCatching { classLoader.loadClass(className) }.getOrNull() ?: continue
-
-                // Check if it implements Worker and is concrete (not abstract)
-                if (Worker::class.java.isAssignableFrom(clazz)
-                    && !Modifier.isAbstract(clazz.modifiers)
-                ) {
-                    val workerClass = clazz as Class<out Worker>
-                    val workerInstance = workerClass.getDeclaredConstructor().newInstance()
-                    workerInstance.jarPath = jarPath
-                    workers["$jarPath:${clazz.canonicalName}"] = workerInstance
-                } else {
-                    println("found invalid Worker $jarPath:$className (either abstract or not assignable to Worker)")
+        return jar.entries().toList()
+            .filter{ entry ->
+                val entryJavaName = entry.name
+                    .replace(".class","")
+                    .replace("/",".")
+                try {
+                    val clazz = classLoader.loadClass(entryJavaName)
+                    // Check if it implements Worker and is concrete (not abstract)
+                    if (Worker::class.java.isAssignableFrom(clazz)
+                        && !Modifier.isAbstract(clazz.modifiers)
+                    ) {
+                        println("found valid Worker $entry / $entryJavaName")
+                        val workerClass = clazz as Class<out Worker>
+                        try {
+                            workerClass.getDeclaredConstructor().newInstance()
+                            println("can instantiate valid Worker $entry / $entryJavaName")
+                            true
+                        } catch (err: Throwable) {
+                            println("could not instantiate ${entry.name} / $entryJavaName")
+                            false
+                        }
+                    } else {
+                        println("found invalid Worker $entryJavaName (either abstract or not assignable to Worker)")
+                        false
+                    }
+                } catch (e: ClassNotFoundException) {
+                    println("could not load class ${entry.name} / $entryJavaName")
+                    false
                 }
             }
-        }
-        return workers
+            .groupBy { entry ->
+                val entryJavaName = entry.name
+                    .replace(".class","")
+                    .replace("/",".")
+                "$jarPath:$entryJavaName"
+            }
+            .mapValues {
+                    entry ->
+                val entryJavaName = entry.value[0].name
+                    .replace(".class","")
+                    .replace("/",".")
+                val clazz = runCatching { classLoader.loadClass(entryJavaName) }.getOrNull()
+                val workerClass = clazz as Class<out Worker>
+                try{
+                    val workerInstance = workerClass.getDeclaredConstructor().newInstance()
+                    workerInstance.jarPath=jarPath
+                    println("instantiated Worker\n class:$entryJavaName entry:\n $entry key:\n ${entry.key}")
+                    workerInstance
+                }catch (x:Throwable) {
+                    println()
+                    throw Throwable ( "$entryJavaName cannot be instantiated because $x" )
+                }
+
+            }
     }
+
+}
+fun getWorker(jarclass:String) : Worker {
+    val (jarPath,className) = jarclass.split(":")
+    val entries = getJar(jarPath)
+    if (jarclass in entries) {
+        return entries[jarclass]!!
+    }
+    throw Throwable("class \n def:\n $className not found in jar:\n $jarPath with key:\n $jarclass")
 }
 
 fun declarePort(worker:Worker,portName:String) {
@@ -85,38 +120,37 @@ fun declarePort(worker:Worker,portName:String) {
         worker.declaredPorts.add(portName)
     }
 }
-fun addWorkerInstance(composite:CompositeWorker,jarPath:String,workerName:String): Worker {
-    val key = "$jarPath:$workerName"
-    return if ( !composite.workers.containsKey(key) ) {
-        val wki = if (key == ":") {
-            composite
-        } else {
-            getWorkers(jarPath)[key]!!
-        }
-        composite.workers[key] = wki
+fun addWorkerInstance(composite:CompositeWorker,instance:InstanceDeclaration): Worker {
+    return if ( instance.name !in composite.workers ) {
+        val wki = getWorker(instance.workerRef)
+        wki.config(instance.params)
+        composite.workers[instance.name] = wki
         composite.workerPorts[wki] = mutableMapOf(
             *(wki.declaredPorts.map { it to mutableListOf<ByteArray>() }.toTypedArray())
         )
+        println("added worker instance\n ref:\n ${instance.workerRef} \n name:\n ${instance.name}")
         wki
     } else {
         try {
-            composite.workers[key]!!
+            composite.workers[instance.name]!!
         }catch (th:Throwable){
-            throw Throwable("worker $workerName in $jarPath identified by $key not found")
+            throw Throwable("worker ${instance.getFQN()} in ${instance.getJar()} identified by ${instance.name} not found")
         }
     }
 }
 
 class Link(
-    var sourceJar:String,
     var sourceWorker:String,
     var sourcePort:String,
-    var destinationJar:String,
     var destinationWorker:String,
     var destinationPort:String,
+    /**
+     * propagation type, can be "move" or "copy"
+     */
+    var propagationType:LinkType=LinkType.MOVE,
 ) {
-    fun getSourceKey() = "$sourceJar:$sourceWorker"
-    fun getDestinationKey() = "$destinationJar:$destinationWorker"
+    fun getSourceKey() = "$sourceWorker:$sourcePort"
+    fun getDestinationKey() = "$destinationWorker:$destinationPort"
     companion object {
         fun fromString(definition:String):Link{
             val sourceDestination = definition.split("""\s*->\s*""".toRegex()).map { it.trim(' ') }
@@ -134,16 +168,23 @@ class Link(
                 }
                 val (destinationJar,destinationWorker,destinationPort) = destinationWorkerPort
                 return Link(
-                    sourceJar=sourceJar,
                     sourceWorker=sourceWorker,
                     sourcePort=sourcePort,
-                    destinationJar=destinationJar,
                     destinationWorker=destinationWorker,
                     destinationPort=destinationPort,
                 )
             } else {
                 throw Throwable("invalid link definition $definition")
             }
+        }
+        fun fromLinkDeclaration(linkDeclaration:LinkDeclaration): Link {
+            return Link(
+                sourceWorker = linkDeclaration.source.name,
+                sourcePort = linkDeclaration.source.port!!,
+                destinationWorker = linkDeclaration.target.name,
+                destinationPort = linkDeclaration.target.port!!,
+                propagationType = linkDeclaration.linkType
+            )
         }
 
     }
@@ -152,12 +193,11 @@ class Link(
             {
                 _type : ${this.javaClass.name},
                 _file : ${this.javaClass.protectionDomain.codeSource.location.file},
-                sourceJar : $sourceJar,
                 sourceWorker : $sourceWorker,
                 sourcePort : $sourcePort,
-                destinationJar : $destinationJar,
                 destinationWorker : $destinationWorker,
                 destinationPort : $destinationPort,
+                propagationType : $propagationType
             }
         """.trimIndent()
     }
@@ -179,6 +219,10 @@ class TypedMap(
 class CompositeWorker:Worker(
 ){
     /**
+     * strategy supported values "parallel","sequential"
+     */
+    lateinit var strategy:String
+    /**
      * contains the map between the jar path and the worker instance
      */
     var  workers: MutableMap<String,Worker> = mutableMapOf()
@@ -190,6 +234,9 @@ class CompositeWorker:Worker(
      * contains the map between the jar path of the worker + port name and the queue of byte array packets
      */
     var workerPorts: MutableMap<Worker,MutableMap<String,MutableList<ByteArray>>> = mutableMapOf()
+    override fun config(conf: Map<String, String>) {
+
+    }
 
 
     override fun run(ports: MutableMap<String,MutableList<ByteArray>>) {
@@ -199,8 +246,8 @@ class CompositeWorker:Worker(
         }
         val sourcePacketsToRemove: MutableList<Link> = mutableListOf()
         for(link in links) {
-            val srcWorker = workers[link.getSourceKey()]
-            println("workers[${link.getSourceKey()}] === $srcWorker ")
+            val srcWorker = workers[link.sourceWorker]
+            println("workers[${link.sourceWorker}] === $srcWorker ")
             val srcPort = try{
                 workerPorts[srcWorker]!![link.sourcePort]!!
             }catch(x:Throwable){
@@ -210,7 +257,7 @@ class CompositeWorker:Worker(
                 // throw Throwable("could not find port ${link.sourcePort} in workerPorts[$srcWorker] === ${workerPorts[srcWorker]}")
             }
             if (srcPort.size > 0) {
-                val destWorker = workers[link.getDestinationKey()]
+                val destWorker = workers[link.destinationWorker]
                 val destPort = workerPorts[destWorker]!![link.destinationPort]!!
                 val packet = srcPort.first()
                 destPort.add(packet)
@@ -218,7 +265,7 @@ class CompositeWorker:Worker(
             }
         }
         for(link in sourcePacketsToRemove) {
-            val srcWorker = workers[link.getDestinationKey()]
+            val srcWorker = workers[link.sourceWorker]
             val srcPort = workerPorts[srcWorker]!![link.sourcePort]!!
             if (srcPort.size > 0) {
                 srcPort.removeAt(0)
@@ -226,55 +273,45 @@ class CompositeWorker:Worker(
         }
     }
     companion object {
-        /**
-         * Example of parsing lines in "Mermaid-like" format, e.g.:
-         *
-         *   (error)base64Encode -> logger(input)
-         *
-         * Left side  : (error)base64Encode
-         * Right side : logger(input)
-         *
-         * We'll extract:
-         *   - outPort = "error"
-         *   - leftWorkerName = "base64Encode"
-         *   - rightWorkerName = "logger"
-         *   - inPort = "input"
-         */
-        fun fromGraph(graph: String): CompositeWorker {
-            val composite = CompositeWorker()
-
-            val lines = graph
-                .lineSequence()
-                .map { it.trim() }
-                .filter { it.isNotEmpty() && !it.trim(' ').startsWith("#") }
-
-            for (definition in lines) {
-                val link = Link.fromString(definition)
-                composite.links.add(link)
-                if (link.sourceWorker.isBlank()){
-                    declarePort(composite,link.sourcePort)
-                }
-                if (link.destinationWorker.isBlank()){
-                    declarePort(composite,link.destinationPort)
-                }
-                val sw = addWorkerInstance(composite,link.sourceJar,link.sourceWorker)
-                declarePort(sw,link.sourcePort)
-                val dw = addWorkerInstance(composite,link.destinationJar,link.destinationWorker)
-                declarePort(dw,link.sourcePort)
-            }
-
-            return composite
-        }
         fun fromScript(scriptText: String): CompositeWorker{
             val composite = CompositeWorker()
             var parser = Parser()
 
-            val script = parser.parse(scriptText)
-            for (worker in parser.instances) {
-                // addWorkerInstance(composite,worker.value.workerRef)
+            val (varDeclarations,instanceDeclarations,linkDeclarations) = parser.parse(scriptText)
+            val varNames = varDeclarations.groupBy { it.name }
+            for (instanceDeclaration in instanceDeclarations) {
+                addWorkerInstance(composite,instanceDeclaration)
+                println("addWorkerInstance($instanceDeclaration)")
             }
-            for (link in parser.links) {
-                // addWorkerInstance(composite,worker.value.workerRef)
+            for (linkDeclaration in linkDeclarations) {
+                if (linkDeclaration.source.name.isBlank()){
+                    declarePort(composite,linkDeclaration.source.port!!)
+                }
+                if (linkDeclaration.target.name.isBlank()){
+                    declarePort(composite,linkDeclaration.target.port!!)
+                }
+                try{
+                    val sw = composite.workers[linkDeclaration.source.name]!!
+                    declarePort(sw, linkDeclaration.source.port!!)
+
+                    composite.workerPorts[sw] = mutableMapOf(
+                        *(sw.declaredPorts.map { it to mutableListOf<ByteArray>() }.toTypedArray())
+                    )
+                    println("declared port of ${linkDeclaration.source.name} with name ${linkDeclaration.source.port}")
+                }catch(x:Throwable){
+                    throw Exception("could not find the worker instance ${linkDeclaration.source.name} with port ${linkDeclaration.source.port}")
+                }
+                try{
+                    val dw = composite.workers[linkDeclaration.target.name]!!
+                    declarePort(dw, linkDeclaration.target.port!!)
+                    composite.workerPorts[dw] = mutableMapOf(
+                        *(dw.declaredPorts.map { it to mutableListOf<ByteArray>() }.toTypedArray())
+                    )
+                    println("declared port of ${linkDeclaration.target.name} with name ${linkDeclaration.target.port}")
+                }catch(x:Throwable){
+                    throw Exception("could not find the worker instance ${linkDeclaration.target.name} with port ${linkDeclaration.target.port}")
+                }
+                composite.links.add(Link.fromLinkDeclaration(linkDeclaration))
             }
             return composite
         }

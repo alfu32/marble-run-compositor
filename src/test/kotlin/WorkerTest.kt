@@ -10,6 +10,9 @@ class WorkerTest {
     @Test
     fun test_run_worker() {
         val portsPrinter = object: Worker() {
+            override fun config(conf: Map<String, String>) {
+            }
+
             override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
                 ports.forEach { name, queue ->
                     println("=== Port $name (${queue.size}):")
@@ -25,6 +28,9 @@ class WorkerTest {
 
         }
         val wk = object: Worker() {
+            override fun config(conf: Map<String, String>) {
+            }
+
             override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
                 val input = ports["in"]!!.first().toString(Charsets.UTF_8)
                 if( input == "error" ) {

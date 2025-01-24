@@ -17,37 +17,54 @@ class CompositeWorkerTest {
     }
 
     @Test
-    fun test_create() {
-        val dirPkgRef = "src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test"
+    fun test_create_from_script() {
+        val dirPkgRef = "workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test"
         val definitions ="""
-            $dirPkgRef.WorkerCounter:out -> $dirPkgRef.WorkerMultiply:in
-            $dirPkgRef.WorkerMultiply:out -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerMultiply:out2 -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerMultiply:out3 -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerPipethrough:out -> $dirPkgRef.WorkerPrintPorts:in
-            $dirPkgRef.WorkerPipethrough:out2 -> $dirPkgRef.WorkerPrintPorts:in
-            $dirPkgRef.WorkerPipethrough:out3 -> $dirPkgRef.WorkerPrintPorts:in
+            ## instances
+            instance counter = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerCounter ring=true max=10
+            instance fanout = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerFanOut outputs=3
+            instance pipe1 = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPipethrough
+            instance pipe2 = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPipethrough
+            instance print = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPrintPorts
+            
+            ## links
+            link move counter:out -> fanout:in
+            link move fanout:out -> pipe1:in
+            link move fanout:out2 -> pipe1:in
+            link move fanout:out3 -> pipe1:in
+            link move pipe1:out -> print:in
+            link move pipe1:out2 -> print:in
+            link copy pipe2:out3 -> print:in
         """.trimIndent()
-        val cw = CompositeWorker.fromGraph(definitions)
-        println(cw.workers)
-        println(cw.links)
+        val cw = CompositeWorker.fromScript(definitions)
+        println("workers : \n ${cw.workers}")
+        println("links : \n ${cw.links}")
+        println("workerPorts : \n ${cw.workerPorts}")
     }
     @Test
     fun test_run() {
-        val dirPkgRef = "src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test"
+        val dirPkgRef = "workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test"
         val definitions ="""
-            $dirPkgRef.WorkerTimer:out -> $dirPkgRef.WorkerMultiply:in
-            $dirPkgRef.WorkerMultiply:out -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerMultiply:out2 -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerMultiply:out3 -> $dirPkgRef.WorkerPipethrough:in
-            $dirPkgRef.WorkerPipethrough:out -> $dirPkgRef.WorkerPrintPorts:in
-            $dirPkgRef.WorkerPipethrough:out2 -> $dirPkgRef.WorkerPrintPorts:in
-            $dirPkgRef.WorkerPipethrough:out3 -> $dirPkgRef.WorkerPrintPorts:in
+            ## instances
+            instance counter = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerCounter ring=true max=10
+            instance fanout = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerFanOut outputs=3
+            instance pipe1 = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPipethrough
+            instance pipe2 = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPipethrough
+            instance print = workers-lib-std/build/libs/workers-lib-std-1.0-SNAPSHOT.jar:a.b.c.de.test.WorkerPrintPorts
+            
+            ## links
+            link move counter:out -> fanout:in
+            link move fanout:out -> pipe1:in
+            link move fanout:out2 -> pipe1:in
+            link move fanout:out3 -> pipe1:in
+            link move pipe1:out -> print:in
+            link move pipe1:out2 -> print:in
+            link move pipe2:out3 -> print:in
         """.trimIndent()
-        val cw = CompositeWorker.fromGraph(definitions)
-        println(cw.workers)
-        println(cw.links)
-        println(cw.workerPorts)
+        val cw = CompositeWorker.fromScript(definitions)
+        println("workers : \n ${cw.workers}")
+        println("links : \n ${cw.links}")
+        println("workerPorts : \n ${cw.workerPorts}")
         for( iter in 0..9) {
             println("::::::::::::::::: ::: ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
             println("::::::::::::::::: $iter/9 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")

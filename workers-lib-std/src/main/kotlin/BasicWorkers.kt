@@ -5,12 +5,15 @@ import java.time.LocalDateTime
 
 
 class WorkerFanOut(
-    var portsCount:Int = 3
 ): Worker() {
-    private var branches:MutableList<String>
-    init {
+    private var portsCount:Int=1
+    private lateinit var branches:MutableList<String>
+
+    override fun config(conf: Map<String, String>) {
+        portsCount = conf["ports"]?.toInt()?:1
+
         val n = portsCount.toString().length
-        this.branches = (1..portsCount).map { "out${java.lang.String.format("%0${n}",portsCount)}" }.toMutableList()
+        this.branches = (1..portsCount).map { "out$n" }.toMutableList()
         this.declaredPorts = mutableListOf("in","err")
         this.declaredPorts.addAll(this.branches)
     }
@@ -28,9 +31,11 @@ class WorkerFanOut(
 }
 
 class WorkerPipethrough(): Worker() {
-    init {
+
+    override fun config(conf: Map<String, String>) {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         super.run(ports)
         // println does nothing
@@ -43,9 +48,10 @@ class WorkerPipethrough(): Worker() {
 }
 
 class WorkerPrintPorts(): Worker() {
-    init {
+    override fun config(conf: Map<String, String>) {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         super.run(ports)
         // println does nothing
@@ -62,9 +68,10 @@ class WorkerPrintPorts(): Worker() {
     }
 }
 class WorkerClearSink(): Worker() {
-    init {
+    override fun config(conf: Map<String, String>) {
         this.declaredPorts = "in,out,err".split(',').toMutableList()
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         super.run(ports)
         // println does nothing
@@ -75,11 +82,14 @@ class WorkerClearSink(): Worker() {
     }
 }
 class WorkerMergeAll(
-    var targetPort: String = "out"
 ): Worker() {
-    init {
+    private lateinit var targetPort: String
+
+    override fun config(conf: Map<String, String>) {
+        targetPort=conf["targetPort"]?:"out"
         this.declaredPorts = "in,$targetPort,err".split(',').toMutableList()
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         super.run(ports)
         // println does nothing
@@ -97,25 +107,37 @@ class WorkerMergeAll(
     }
 }
 class WorkerTimer(
-    var interval:String=""
 ): Worker() {
-    init {
+    private lateinit var interval:String
+
+    override fun config(conf: Map<String, String>) {
         this.declaredPorts = "out".split(',').toMutableList()
+        interval = conf["interval"]?:""
     }
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         // println does nothing
-        println("WorkerTimer queues curent unix timestamp to out")
+        println("WorkerTimer queues current unix timestamp to out")
         ports["out"]!!.add(LocalDateTime.now().toString().toByteArray())
     }
 }
 class WorkerCounter(): Worker() {
-    init {
+    private var counter:Long=0
+    private var min:Long=0
+    private var max:Long=10
+    private var ring:Boolean=true
+    override fun config(conf: Map<String, String>) {
+        min=(conf["min"]?.toLong()?:0)
+        max=(conf["max"]?.toLong()?:10)
+        counter=(conf["init"]?.toLong()?:min)
         this.declaredPorts = "out".split(',').toMutableList()
     }
-    private var counter:Long = 0L
+
     override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
         // println does nothing
-        counter+=1
+
+        counter = if(ring) if(counter>max) min else counter+1 else counter+1
+
         println("WorkerCounter counts every time it is invoked")
         ports["out"]!!.add((counter).toString().toByteArray())
     }

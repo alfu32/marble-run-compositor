@@ -18,10 +18,13 @@ class WorkerKtTest {
     }
 
     class WkPrn(): Worker() {
-        init {
+
+        override fun config(conf: Map<String, String>) {
             this.declaredPorts = "in,out,err".split(',').toMutableList()
             this.jarPath=""
+            //
         }
+
         override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
             // println does nothing
             println("WorkerPrintPorts prints all the ports and their content")
@@ -38,7 +41,7 @@ class WorkerKtTest {
     }
     @Test
     fun testGetFirstWorkerInstance() {
-        val wks = getWorkers("src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar")
+        val wks = getJar("src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar")
         val prn = WkPrn()
         for (wk in wks) {
             val ports = mutableMapOf(
@@ -57,7 +60,10 @@ class WorkerKtTest {
     @Test
     fun testDeclarePort() {
         val wk = object : Worker() {
-            override var declaredPorts = "a,b,c,d,e".split(",").toMutableList()
+            override fun config(conf: Map<String, String>) {
+                declaredPorts = "a,b,c,d,e".split(",").toMutableList()
+            }
+
             override fun run(ports: MutableMap<String, MutableList<ByteArray>>) {
                 println("nothin'")
             }
@@ -70,13 +76,24 @@ class WorkerKtTest {
 
     @Test
     fun testAddWorkerInstance() {
-        val wks = getWorkers("src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar")
+        val jar = "src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar"
+        val wks = getJar(jar)
         println(wks)
         val composite = CompositeWorker()
         println(composite.workers)
-        addWorkerInstance(composite,"src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar","a.b.c.de.test.WorkerCounter")
+        val id1 = InstanceDeclaration(
+            name="id1",
+            workerRef = "$jar:a.b.c.de.test.WorkerCounter",
+            params = mutableMapOf()
+        )
+        addWorkerInstance(composite,id1)
         println(composite.workers)
-        addWorkerInstance(composite,"src/test/resources/workers-lib-std-1.0-SNAPSHOT.jar","a.b.c.de.test.WorkerClearSink")
+        val id2 = InstanceDeclaration(
+            name="id1",
+            workerRef = "$jar:a.b.c.de.test.WorkerClearSink",
+            params = mutableMapOf()
+        )
+        addWorkerInstance(composite,id2)
         println(composite.workers)
     }
 }

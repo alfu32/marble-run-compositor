@@ -8,11 +8,16 @@ import javax.swing.Icon
 
 class MbrunColorSettingsPage : ColorSettingsPage {
     private val descriptors = arrayOf(
-        AttributesDescriptor("Keyword", MbrunSyntaxHighlighter.KEYWORD),
-        AttributesDescriptor("Variables/Instances", MbrunSyntaxHighlighter.VARIABLE_OR_INSTANCE),
-        AttributesDescriptor("String Literals", MbrunSyntaxHighlighter.TEXT_LITERAL),
-        AttributesDescriptor("Ports", MbrunSyntaxHighlighter.PORT),
-        AttributesDescriptor("Punctuation", MbrunSyntaxHighlighter.PUNCTUATION)
+        AttributesDescriptor("Keyword",MbrunSyntaxHighlighter.KEYWORD),
+        AttributesDescriptor("Name Declaration",MbrunSyntaxHighlighter.NAME_DECLARATION),
+        AttributesDescriptor("Reference",MbrunSyntaxHighlighter.REFERENCE),
+        AttributesDescriptor("Map Key",MbrunSyntaxHighlighter.MAP_KEY),
+        AttributesDescriptor("Map Value",MbrunSyntaxHighlighter.MAP_VALUE),
+        AttributesDescriptor("Variable Or Instance",MbrunSyntaxHighlighter.VARIABLE_OR_INSTANCE),
+        AttributesDescriptor("Text Literal",MbrunSyntaxHighlighter.TEXT_LITERAL),
+        AttributesDescriptor("Package",MbrunSyntaxHighlighter.PACKAGE),
+        AttributesDescriptor("Port",MbrunSyntaxHighlighter.PORT),
+        AttributesDescriptor("Punctuation",MbrunSyntaxHighlighter.PUNCTUATION),
     )
 
     override fun getDisplayName(): String = "MBrun"

@@ -64,6 +64,12 @@ data class InstanceDeclaration(
     fun uid(): String {
         return name
     }
+    fun getJar() : String {
+        return workerRef.split(":")[0]
+    }
+    fun getFQN() : String {
+        return workerRef.split(":")[1]
+    }
 }
 
 /**
