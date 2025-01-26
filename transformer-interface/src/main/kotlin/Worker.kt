@@ -106,11 +106,43 @@ fun getJar(jarPath: String) : Map<String, Worker> {
     }
 
 }
+fun instantiateByFqn(fqn: String): Worker {
+    try{
+        // Load the class
+        val clazz = Class.forName(fqn)
+
+        // Check if it implements Worker and is concrete (not abstract)
+        return if (Worker::class.java.isAssignableFrom(clazz)
+            && !Modifier.isAbstract(clazz.modifiers)
+        ) {
+            println("found valid Worker $fqn")
+            val workerClass = clazz as Class<out Worker>
+            try {
+                println("can instantiate valid Worker $fqn")
+                val wk = workerClass.getDeclaredConstructor().newInstance()
+                wk.jarPath=""
+                wk
+            } catch (err: Throwable) {
+                println("could not instantiate $fqn")
+                throw Throwable ( "$fqn cannot be instantiated because $err" )
+            }
+        } else {
+            throw Throwable ("found invalid Worker $fqn (either abstract or not assignable to Worker)")
+        }
+    }catch (x:Throwable) {
+        println()
+        throw Throwable ( "$fqn cannot be instantiated because $x" )
+    }
+}
 fun getWorker(jarclass:String) : Worker {
     val (jarPath,className) = jarclass.split(":")
-    val entries = getJar(jarPath)
-    if (jarclass in entries) {
-        return entries[jarclass]!!
+    if(jarPath.isBlank()) {
+        return instantiateByFqn(className)
+    } else {
+        val entries = getJar(jarPath)
+        if (jarclass in entries) {
+            return entries[jarclass]!!
+        }
     }
     throw Throwable("class \n def:\n $className not found in jar:\n $jarPath with key:\n $jarclass")
 }
