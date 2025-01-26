@@ -240,7 +240,7 @@ class MbrunLexer : Lexer() {
                             MbrunTokens.INSTANCE
                         }else if(last[2] == "INSTANCE,EQUAL"){
                             MbrunTokens.JAR
-                        }else if(last[2] == "JAR,COLON"){
+                        }else if(last[2] == "JAR,COLON" || last[3] == "VARIABLE_NAME,EQUAL,COLON"){
                             MbrunTokens.CLASS_NAME
                         }else if(last[1] == "CLASS_NAME"){
                             MbrunTokens.CONSTRUCTOR_KEY
