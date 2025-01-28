@@ -1,19 +1,21 @@
 # hello
 # variables
 
-var MM="10"
+var MM=10
+var DD="abcdefg"
 
 # worker instances
-instance config   = libs/std.jar:org.marbleRun.std.ReadStaticJson file="settings.json"
+instance config   = libs/std.jar:org.marbleRun.std.ReadStaticJson file="settings.$MM.json"
 instance fanOut1  = libs/std.jar:org.marbleRun.std.FanOut         outputs="3"
 instance timer    = libs/std.jar:org.marbleRun.std.Timer          cron="*/10 * * * * *" precision="2s"
 instance counter  = libs/std.jar:org.marbleRun.std.Counter
 instance log      = libs/std.jar:org.marbleRun.sys.FileBuffer     file="log.txt" failFast=true
-instance stdout   = libs/std.jar:org.marbleRun.sys.Stdout         buffer=false noerror=true
+instance stdout   = libs/std.jar:org.marbleRun.sys.Stdout         buffer="false" noerror='true'
 instance stderr   = libs/std.jar:org.marbleRun.sys.Stderr
 instance null     = libs/std.jar:org.marbleRun.sys.DevNull
 instance worker1  = project/my-entities.jar:a.b.c.d.PassThrough
 instance worker2  = project/my-entities.jar:a.b.c.d.PassThrough
+instance localPrint = :a.b.c.d.Something abc=20 def="30"
 
 # topology
 link copy config:config -> timer:config
