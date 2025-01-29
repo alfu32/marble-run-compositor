@@ -115,26 +115,6 @@ class MbrunLexer : Lexer() {
     // -------------------------
     //   Tokenization Logic
     // -------------------------
-    private fun previousTokenIndex(start:Int,predicate: (value:TokenInfo,index:Int) -> Boolean) :Int {
-        var i=start;
-        while (i>=0 && tokens[i].type != MbrunTokens.WHITESPACE && !predicate(tokens[i],i)) {
-            if(predicate(tokens[i],i)){
-                return i
-            }
-            i--
-        }
-        return -1
-    }
-    private fun previousTokensMatch(list: List<IElementType>) :Boolean {
-        val mi=list.size;
-        val match = list.joinToString(","){it.toString()}
-        val tokensString = tokens.filter{it.type != MbrunTokens.WHITESPACE}.takeLast(mi).joinToString(",") { it.type.toString()  }
-        // if(tokensString != "") {
-        //     println("filtered (${tokens.size})tokens == $tokensString ")
-        //     println("tokens to match == $match ")
-        // }
-        return tokensString == match
-    }
 
     private fun tokenize() {
         var offset = bufferStart
@@ -168,23 +148,6 @@ class MbrunLexer : Lexer() {
             // 4) Check single-char punctuation
             if (c == '=') {
                 tokens+=TokenInfo(MbrunTokens.EQUAL, offset, offset + 1)
-                //var i = previousTokenIndex(tokens.size-1) {v,_ -> v.type != MbrunTokens.IDENTIFIER}
-                //if(i>0){
-                //    var lastToken=tokens[i]
-                //    tokens += when (lastToken.type) {
-                //        MbrunTokens.KEYWORD_VAR -> {
-                //            TokenInfo(MbrunTokens.ASSIGN_OP, offset, offset + 1)
-                //        }
-                //
-                //        MbrunTokens.KEYWORD_INSTANCE -> {
-                //            TokenInfo(MbrunTokens.ALIAS, offset, offset + 1)
-                //        }
-                //
-                //        else -> {
-                //            TokenInfo(MbrunTokens.EQUAL, offset, offset + 1)
-                //        }
-                //    }
-                //}
                 offset++
                 continue
             }
@@ -240,7 +203,7 @@ class MbrunLexer : Lexer() {
                             MbrunTokens.INSTANCE
                         }else if(last[2] == "INSTANCE,EQUAL"){
                             MbrunTokens.JAR
-                        }else if(last[2] == "JAR,COLON" || last[3] == "VARIABLE_NAME,EQUAL,COLON"){
+                        }else if(last[2] == "JAR,COLON" || last[3] == "INSTANCE,EQUAL,COLON"){
                             MbrunTokens.CLASS_NAME
                         }else if(last[1] == "CLASS_NAME"){
                             MbrunTokens.CONSTRUCTOR_KEY
@@ -257,6 +220,7 @@ class MbrunLexer : Lexer() {
                         }else if(last[2] == "VARIABLE_REFERENCE,COLON"){
                             MbrunTokens.PORT
                         } else {
+                            println("last 5 : ${last[5]}")
                             MbrunTokens.IDENTIFIER
                         }
                     }

@@ -164,6 +164,39 @@ class MbrunLexerTest {
         assertEquals(MbrunTokens.JAR, tokens[6])
         assertEquals(MbrunTokens.COLON, tokens[7])
         assertEquals(MbrunTokens.CLASS_NAME, tokens[8])
+
+        println("tokens : $tokens")
+    }
+    @Test
+    fun testLocalInstanceDeclaration() {
+        // e.g.: instance foo = libs/stdlib.jar:com.mbrun.ClassName
+        // Should yield:
+        // KEYWORD_INSTANCE -> WHITESPACE -> INSTANCE -> WHITESPACE -> EQUAL -> WHITESPACE ->
+        // COLON -> PROTOTYPE
+        val snippet = "instance foo = :com.mbrun.ClassName"
+        val tokens = tokenize(snippet)
+
+        // Let's walk through them:
+        // 0: KEYWORD_INSTANCE  ("instance")
+        // 1: WHITESPACE
+        // 2: INSTANCE          ("foo") because previousTokensMatch(KEYWORD_INSTANCE)
+        // 3: WHITESPACE
+        // 4: EQUAL
+        // 5: WHITESPACE
+        // 6: COLON
+        // 7: PROTOTYPE ("com.mbrun.ClassName") because previousTokensMatch(listOf(JAR, COLON))
+        assertEquals(8, tokens.size, "Should produce 9 tokens in total")
+
+        assertEquals(MbrunTokens.KEYWORD_INSTANCE, tokens[0])
+        assertEquals(MbrunTokens.WHITESPACE, tokens[1])
+        assertEquals(MbrunTokens.INSTANCE, tokens[2])
+        assertEquals(MbrunTokens.WHITESPACE, tokens[3])
+        assertEquals(MbrunTokens.EQUAL, tokens[4])
+        assertEquals(MbrunTokens.WHITESPACE, tokens[5])
+        assertEquals(MbrunTokens.COLON, tokens[6])
+        assertEquals(MbrunTokens.CLASS_NAME, tokens[7])
+
+        println("tokens : $tokens")
     }
 
     @Test

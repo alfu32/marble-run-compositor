@@ -15,6 +15,7 @@ instance stderr   = libs/std.jar:org.marbleRun.sys.Stderr
 instance null     = libs/std.jar:org.marbleRun.sys.DevNull
 instance worker1  = project/my-entities.jar:a.b.c.d.PassThrough
 instance worker2  = project/my-entities.jar:a.b.c.d.PassThrough
+instance local  = :a.b.c.d.Local
 instance localPrint = :a.b.c.d.Something abc=20 def="30"
 
 # topology
