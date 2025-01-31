@@ -1,4 +1,4 @@
-package a.b.c.de.test
+package org.mbrun.std
 
 import eu.ec.oib.training.alferio.Worker
 import java.time.LocalDateTime
@@ -140,5 +140,27 @@ class WorkerCounter(): Worker() {
 
         println("WorkerCounter counts every time it is invoked")
         ports["out"]!!.add((counter).toString().toByteArray())
+    }
+}
+
+
+class SequenceGeneratorWorker:Worker(){
+    override fun config(conf: Map<String, String>) {
+        //TODO("Not yet implemented")
+    }
+}
+class CircularSequenceGeneratorWorker:Worker(){
+    override fun config(conf: Map<String, String>) {
+        //TODO("Not yet implemented")
+    }
+}
+class FileLoggerWorker:Worker(){
+    override fun config(conf: Map<String, String>) {
+        //TODO("Not yet implemented")
+    }
+}
+class BlackholeWorker:Worker(){
+    override fun config(conf: Map<String, String>) {
+        //TODO("Not yet implemented")
     }
 }

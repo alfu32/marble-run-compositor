@@ -8,6 +8,8 @@ import java.nio.file.Paths
 import java.util.Enumeration
 import java.util.jar.JarFile
 import java.util.jar.JarEntry
+import kotlin.io.path.Path
+import kotlin.io.path.name
 
 abstract class Worker() {
     init{}
@@ -304,6 +306,57 @@ class CompositeWorker:Worker(
             }
         }
     }
+    fun compile(fullPath:String){
+        val scriptText = File(fullPath).readText()
+        val packageName = Path(fullPath).parent.toString()
+        val className = Path(fullPath).fileName.name
+        val sourcecode= object {
+            val packageDecl = mutableListOf("package $packageName")
+            val imports = mutableListOf("")
+            val classDeclaration = mutableListOf("""
+                class $className:Worker(){
+                    /**** INJECTED DECL CODE ****/
+                    override fun config(conf: Map<String, String>) {
+                        /**** INJECTED CONFIG CODE ****/
+                    }
+                    override fun run(ports: MutableMap<String,MutableList<ByteArray>>) {
+                        /**** INJECTED RUN CODE ****/
+                    }
+                }
+            """.trimIndent())
+        }
+        var parser = Parser()
+
+        val (varDeclarations,instanceDeclarations,linkDeclarations) = parser.parse(scriptText)
+        val varNames = varDeclarations.groupBy { it.name }
+        val codeDeclarations = mutableListOf("/** generated code from fullPath")
+        val codeConfig = mutableListOf("/** generated code from fullPath")
+        val codeRun = mutableListOf("/** generated code from fullPath")
+        for(varDecl in varDeclarations) {
+            codeDeclarations.add("""private String ${varDecl.name}=${varDecl.value}""")
+        }
+        for(instanceDecl in instanceDeclarations) {
+            codeDeclarations.add("""private HashMap<String,ArrayList<ByteArray>> ${instanceDecl.name}Ports=new HashMap<String,ArrayList<ByteArray>>()""")
+            codeDeclarations.add("""private ${instanceDecl.getFQN()} ${instanceDecl.name}=new ${instanceDecl.getFQN()}()""")
+            codeConfig.add("""${instanceDecl.name}config(new HashMap<String,String>(){{""")
+            for ( param in instanceDecl.params ) {
+                codeConfig.add("""put("${param.key}","${param.value}")""")
+            }
+            codeConfig.add("""}})""")
+            codeRun.add("""""")
+        }
+        for(link in links) {
+            when(link.propagationType){
+                LinkType.MOVE -> {
+                    codeRun.add("""${link.destinationWorker}Ports.get("${link.destinationPort}").add(${link.sourceWorker}Ports.get("${link.sourcePort}").pop())""")
+                }
+                LinkType.COPY -> {
+                    codeRun.add("""${link.destinationWorker}Ports.get("${link.destinationPort}").add(${link.sourceWorker}Ports.get("${link.sourcePort}").get(0))""")
+                }
+            }
+        }
+        codeRun.add("""}""")
+    }
     companion object {
         fun fromScript(scriptText: String): CompositeWorker{
             val composite = CompositeWorker()
@@ -347,5 +400,6 @@ class CompositeWorker:Worker(
             }
             return composite
         }
+
     }
 }

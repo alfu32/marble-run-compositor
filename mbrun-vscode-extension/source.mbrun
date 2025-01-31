@@ -30,3 +30,5 @@ link move worker1:err   -> stderr:in
 link move worker2:out   -> log:in
 link move worker2:err   -> null:in
 link move counter:out   -> log:in
+link move log:out -> localPrint:in
+link move localPrint:out -> local:in

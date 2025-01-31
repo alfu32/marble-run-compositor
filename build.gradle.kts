@@ -21,6 +21,7 @@ repositories {
 dependencies {
     implementation(project(":transformer-interface"))
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation(project(":workers-lib-std"))
 }
 
 tasks.test {
